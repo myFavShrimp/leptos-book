@@ -110,6 +110,86 @@ You can edit the CSS directly without causing a Rust recompile.
 }
 ```
 
+## turf: Compile-time SCSS with Browser Compatibility Targeting
+
+[turf](https://github.com/myFavShrimp/turf) is a styling library that compiles SCSS to CSS at compile time, generates unique class names, and injects the styles into your binary. With [browserslist](https://browsersl.ist) compatibility targeting through [lightningcss](https://github.com/parcel-bundler/lightningcss), turf automatically handles vendor prefixes and CSS feature compatibility across different browsers.
+
+```rust
+use leptos::prelude::*;
+
+turf::style_sheet!("src/button.scss");
+
+#[component]
+pub fn Button() -> impl IntoView {
+    let (count, set_count) = signal(0);
+
+    view! {
+        <style>{STYLE_SHEET}</style>
+        
+        <div class=ClassName::BUTTON_CONTAINER>
+            <button 
+                class=ClassName::BUTTON
+                on:click=move |_| set_count.update(|n| *n += 1)
+            >
+                "Clicked " {move || count.get()} " times"
+            </button>
+        </div>
+    }
+}
+```
+
+Your SCSS file can use typical SCSS features like variables, nesting, and imports:
+
+```scss
+// src/button.scss
+
+@import "variables/colors";
+
+.button-container {
+    padding: 20px;
+    text-align: center;
+    
+    .button {
+        background-color: $button-color;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background-color 0.3s;
+        
+        &:hover {
+            background-color: $button-hover-color;
+        }
+    }
+}
+```
+
+turf also supports inline SCSS definitions if you prefer to keep your styles in the same file as your component, and file output options if you want to serve your stylesheets separately.
+
+You can configure turf in your `Cargo.toml` file:
+
+```toml
+[package.metadata.turf]
+minify = true
+load_paths = ["path/to/shared/scss/files", "path/to/other/shared/scss/files"]
+browser_targets = [
+    "defaults",
+    "> 5%",
+    "safari 12",
+]
+
+[package.metadata.turf.class_names]
+template = "<original_name>-with-custom-<id>"
+excludes = ["exclude-this-class-please", "^abc-[123]{4}"]
+
+[package.metadata.turf.file_output]
+global_css_file_path = "path/to/global.css"
+separate_css_files_path = "dir/for/separate/css/"
+
+```
+
 ## Contributions Welcome
 
 Leptos has no opinions on how you style your website or app, but we’re very happy to provide support to any tools you’re trying to create to make it easier. If you’re working on a CSS or styling approach that you’d like to add to this list, please let us know!
